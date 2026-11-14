@@ -56,6 +56,7 @@ impl<'src> Tokens<'src> {
         self.skip_whitespace();
         let c = self.peek_char()?;
         let token = match c {
+            _ if 
             '\n' => self.scan_newline(),
             'G' | 'g' => self.scan_single_char(TokenType::G),
             'M' | 'm' => self.scan_single_char(TokenType::M),

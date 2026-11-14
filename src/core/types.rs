@@ -34,6 +34,8 @@ pub enum TokenType {
     Unknown,
     /// Virtual: expected end of input (no more tokens).
     Eof,
+    /// Custom: User defined token.
+    Custom,
 }
 
 impl TokenType {
@@ -53,6 +55,7 @@ impl TokenType {
             TokenType::Newline => "newline",
             TokenType::Unknown => "unknown",
             TokenType::Eof => "eof",
+            TokenType::Custom => "custom",
         }
     }
 }
@@ -314,6 +317,12 @@ pub trait ProgramVisitor: HasDiagnostics {
 /// - Exactly once: [`end_line`](BlockVisitor::end_line).
 #[allow(unused_variables)]
 pub trait BlockVisitor: HasDiagnostics + Sized {
+
+    // Optional detection for custom block starts.
+    fn is_custom_code_start(&mut self, value: &str) -> bool {
+        false
+    }
+
     /// Optional N line number (e.g. `N100`). Called at most once per block.
     fn line_number(&mut self, n: u32, span: Span) {}
     /// Comment content (excluding parentheses). Called for each comment on the line.
@@ -344,6 +353,14 @@ pub trait BlockVisitor: HasDiagnostics + Sized {
     /// Start of a T (tool change) command. Return a [`CommandVisitor`] to handle
     /// this command, or use the default to ignore it.
     fn start_tool_change_code(
+        &mut self,
+        number: Number,
+    ) -> ControlFlow<impl CommandVisitor + '_> {
+        ControlFlow::Continue(Noop)
+    }
+    /// Start of a Tcustom command. Return a [`CommandVisitor`] to handle
+    /// this command, or use the default to ignore it.
+    fn start_custom_code(
         &mut self,
         number: Number,
     ) -> ControlFlow<impl CommandVisitor + '_> {
